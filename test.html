@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share My Location</title>
+    <style>
+        /* Global Resets and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Main Card Container */
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 30px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header */
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .privacy-note {
+            text-align: center;
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 25px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        /* Button Styles */
+        .btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Alert Messages */
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .alert-error {
+            background: #fee;
+            color: #c33;
+            border-left: 4px solid #c33;
+        }
+
+        .alert-success {
+            background: #efe;
+            color: #3c3;
+            border-left: 4px solid #3c3;
+        }
+
+        /* Location Details */
+        .location-details {
+            display: none;
+        }
+
+        .location-details.show {
+            display: block;
+        }
+
+        .detail-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            color: #333;
+            font-size: 16px;
+            word-wrap: break-word;
+        }
+
+        /* Coordinates Display */
+        .coordinates {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .coord-box {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        /* Distance Display */
+        .distance-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .distance-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .distance-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Map Container */
+        .map-container {
+            margin: 20px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            height: 400px;
+            background: #e9ecef;
+            border: 2px solid #dee2e6;
+        }
+
+        #mapDisplay {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-secondary {
+            flex: 1;
+            background: #6c757d;
+            color: white;
+            padding: 12px;
+            text-decoration: none;
+            text-align: center;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        /* Last Updated */
+        .last-updated {
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            margin-top: 15px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .coordinates {
+                flex-direction: column;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .map-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📍 Share My Location</h1>
+        
+        <div class="privacy-note">
+            🔒 Your location is only accessed when you press the button. We don't store any data.
+        </div>
+
+        <button class="btn btn-primary" id="shareBtn" onclick="getLocation()">
+            Share My Location
+        </button>
+
+        <!-- Loading State -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div class="loading-text">Getting your location...</div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div class="alert alert-error" id="errorAlert"></div>
+        <div class="alert alert-success" id="successAlert"></div>
+
+        <!-- Location Details -->
+        <div class="location-details" id="locationDetails">
+            <!-- Distance to Reference Point -->
+            <div class="distance-box">
+                <div class="distance-value" id="distance">-- km</div>
+                <div class="distance-label">Distance from Phnom Penh City Center</div>
+            </div>
+
+            <!-- Coordinates -->
+            <div class="coordinates">
+                <div class="coord-box">
+                    <div class="detail-label">Latitude</div>
+                    <div class="detail-value" id="latitude">--</div>
+                </div>
+                <div class="coord-box">
+                    <div class="detail-label">Longitude</div>
+                    <div class="detail-value" id="longitude">--</div>
+                </div>
+            </div>
+
+            <!-- Address Details -->
+            <div class="detail-card">
+                <div class="detail-label">📍 Full Address</div>
+                <div class="detail-value" id="fullAddress">Loading...</div>
+            </div>
+
+            <div class="detail-card">
+                <div class="detail-label">🏙️ City / Province</div>
+                <div class="detail-value" id="city">Loading...</div>
+            </div>
+
+            <div class="detail-card">
+                <div class="detail-label">📌 District</div>
+                <div class="detail-value" id="district">Loading...</div>
+            </div>
+
+            <div class="detail-card">
+                <div class="detail-label">🌏 Country</div>
+                <div class="detail-value" id="country">Loading...</div>
+            </div>
+
+            <div class="detail-card">
+                <div class="detail-label">🎯 Accuracy</div>
+                <div class="detail-value" id="accuracy">-- meters</div>
+            </div>
+
+            <div class="detail-card" id="locationTypeCard">
+                <div class="detail-label">📡 Location Source</div>
+                <div class="detail-value" id="locationType">--</div>
+            </div>
+
+            <!-- Google Map Display -->
+            <div class="map-container">
+                <div id="mapDisplay"></div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a class="btn-secondary" id="googleMapsLink" href="#" target="_blank">
+                    Open in Google Maps
+                </a>
+                <button class="btn-secondary" onclick="getLocation()">
+                    Refresh Location
+                </button>
+            </div>
+
+            <div class="last-updated" id="lastUpdated"></div>
+        </div>
+    </div>
+
+    <!-- Load Google Maps API -->
+    <script src="https://maps.google.com/maps/api/js?sensor=false"></script>
+
+    <script>
+        // Reference point: Phnom Penh City Center (Independence Monument)
+        const REFERENCE_POINT = {
+            lat: 11.5564,
+            lon: 104.9282,
+            name: "Phnom Penh City Center"
+        };
+
+        // Global variables for map
+        let currentMap = null;
+        let currentMarker = null;
+
+        // Check if Geolocation is supported
+        function checkGeolocationSupport() {
+            if (!navigator.geolocation) {
+                showError("Geolocation is not supported by your browser. Please use a modern browser like Chrome, Firefox, or Safari.");
+                return false;
+            }
+            return true;
+        }
+
+        // Main function to get user's location
+        function getLocation() {
+            // Check browser support first
+            if (!checkGeolocationSupport()) {
+                return;
+            }
+
+            // Hide previous results and errors
+            hideElement('locationDetails');
+            hideElement('errorAlert');
+            hideElement('successAlert');
+
+            // Show loading state
+            showElement('loading');
+            disableButton();
+
+            // Geolocation options for better accuracy
+            const options = {
+                enableHighAccuracy: true, // Use GPS if available
+                timeout: 10000, // Wait up to 10 seconds
+                maximumAge: 0 // Don't use cached position
+            };
+
+            // Get current position
+            navigator.geolocation.getCurrentPosition(
+                handleSuccess,
+                handleError,
+                options
+            );
+        }
+
+        // Success callback - displays location on Google Maps
+        function handleSuccess(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            const accuracy = Math.round(position.coords.accuracy);
+
+            // Display coordinates
+            document.getElementById('latitude').textContent = lat.toFixed(6);
+            document.getElementById('longitude').textContent = lon.toFixed(6);
+            document.getElementById('accuracy').textContent = accuracy + ' meters';
+
+            // Determine location source based on accuracy
+            let locationType = '';
+            let locationColor = '';
+            if (accuracy < 50) {
+                locationType = '📱 GPS (High Accuracy)';
+                locationColor = '#28a745';
+            } else if (accuracy < 500) {
+                locationType = '📶 WiFi/Cell Tower (Medium Accuracy)';
+                locationColor = '#ffc107';
+            } else {
+                locationType = '🌐 IP/WiFi (Low Accuracy - May be incorrect!)';
+                locationColor = '#dc3545';
+            }
+            
+            const locationTypeEl = document.getElementById('locationType');
+            locationTypeEl.textContent = locationType;
+            locationTypeEl.style.color = locationColor;
+            locationTypeEl.style.fontWeight = 'bold';
+
+            // Show warning if accuracy is poor
+            if (accuracy > 500) {
+                showError('⚠️ Location accuracy is low (' + accuracy + 'm). You might be seeing IP/WiFi location instead of your real GPS position. Try using a phone with GPS enabled for accurate results!');
+            }
+
+            // Calculate distance
+            const distance = calculateDistance(lat, lon, REFERENCE_POINT.lat, REFERENCE_POINT.lon);
+            document.getElementById('distance').textContent = distance.toFixed(2) + ' km';
+
+            // Update Google Maps link
+            const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
+            document.getElementById('googleMapsLink').href = googleMapsUrl;
+
+            // Display Google Map with marker
+            displayGoogleMap(lat, lon);
+
+            // Fetch address details
+            fetchAddress(lat, lon);
+
+            // Update last updated time
+            updateLastUpdatedTime();
+
+            // Show success message
+            showSuccess("Location retrieved successfully!");
+
+            // Show location details
+            showElement('locationDetails');
+
+            // Hide loading and enable button
+            hideElement('loading');
+            enableButton();
+        }
+
+        // Error callback
+        function handleError(error) {
+            let errorMessage = '';
+
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    errorMessage = "Location access denied. Please enable location permissions in your browser settings and try again.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    errorMessage = "Location information is unavailable. This might happen if GPS is not available on your device. Try using a device with GPS or enabling location services.";
+                    break;
+                case error.TIMEOUT:
+                    errorMessage = "Location request timed out. Please check your GPS/location settings and try again.";
+                    break;
+                default:
+                    errorMessage = "An unknown error occurred while getting your location. Please try again.";
+            }
+
+            showError(errorMessage);
+            hideElement('loading');
+            enableButton();
+        }
+
+        // Display Google Map with marker
+        function displayGoogleMap(lat, lon) {
+            const mapDiv = document.getElementById('mapDisplay');
+            
+            // Make sure we have valid coordinates
+            console.log('Displaying map at:', lat, lon);
+            
+            // Create LatLng object with explicit lat/lng
+            const latLng = new google.maps.LatLng(parseFloat(lat), parseFloat(lon));
+
+            // Map options
+            const mapOptions = {
+                center: latLng,
+                zoom: 15,
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                mapTypeControl: true,
+                mapTypeControlOptions: {
+                    style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+                    position: google.maps.ControlPosition.TOP_RIGHT
+                },
+                streetViewControl: true,
+                fullscreenControl: true,
+                zoomControl: true
+            };
+
+            // Remove old map if exists
+            if (currentMap) {
+                currentMap = null;
+            }
+
+            // Create new map
+            currentMap = new google.maps.Map(mapDiv, mapOptions);
+
+            // Create marker at exact location
+            currentMarker = new google.maps.Marker({
+                position: { lat: parseFloat(lat), lng: parseFloat(lon) },
+                map: currentMap,
+                title: "You are here!",
+                animation: google.maps.Animation.DROP
+            });
+
+            // Add info window
+            const infoWindow = new google.maps.InfoWindow({
+                content: `<div style="padding: 10px;">
+                    <strong>Your Location</strong><br>
+                    Lat: ${parseFloat(lat).toFixed(6)}<br>
+                    Lng: ${parseFloat(lon).toFixed(6)}
+                </div>`
+            });
+
+            // Show info window on marker click
+            currentMarker.addListener('click', function() {
+                infoWindow.open(currentMap, currentMarker);
+            });
+
+            // Auto-show info window after 1 second
+            setTimeout(function() {
+                infoWindow.open(currentMap, currentMarker);
+            }, 1000);
+        }
+
+        // Fetch human-readable address using OpenStreetMap Nominatim API
+        function fetchAddress(lat, lon) {
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.address) {
+                        const addr = data.address;
+                        
+                        // Extract address components
+                        const country = addr.country || 'N/A';
+                        const city = addr.city || addr.province || addr.state || addr.region || 'N/A';
+                        const district = addr.county || addr.suburb || addr.neighbourhood || addr.quarter || 'N/A';
+                        const fullAddress = data.display_name || 'Address not available';
+
+                        // Update UI
+                        document.getElementById('country').textContent = country;
+                        document.getElementById('city').textContent = city;
+                        document.getElementById('district').textContent = district;
+                        document.getElementById('fullAddress').textContent = fullAddress;
+                    } else {
+                        throw new Error('Address data not available');
+                    }
+                })
+                .catch(error => {
+                    console.error('Address fetch error:', error);
+                    document.getElementById('country').textContent = 'Unable to fetch';
+                    document.getElementById('city').textContent = 'Unable to fetch';
+                    document.getElementById('district').textContent = 'Unable to fetch';
+                    document.getElementById('fullAddress').textContent = 'Unable to fetch address. Please check your internet connection.';
+                });
+        }
+
+        // Calculate distance using Haversine formula
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth's radius in kilometers
+            const dLat = toRadians(lat2 - lat1);
+            const dLon = toRadians(lon2 - lon1);
+            
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const distance = R * c;
+            
+            return distance;
+        }
+
+        // Convert degrees to radians
+        function toRadians(degrees) {
+            return degrees * (Math.PI / 180);
+        }
+
+        // Update last updated time
+        function updateLastUpdatedTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('lastUpdated').textContent = `Last updated: ${timeString}`;
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorAlert = document.getElementById('errorAlert');
+            errorAlert.textContent = message;
+            errorAlert.classList.add('show');
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const successAlert = document.getElementById('successAlert');
+            successAlert.textContent = message;
+            successAlert.classList.add('show');
+            
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                successAlert.classList.remove('show');
+            }, 3000);
+        }
+
+        // Helper functions for UI
+        function showElement(id) {
+            const element = document.getElementById(id);
+            if (element.classList.contains('loading')) {
+                element.classList.add('active');
+            } else {
+                element.classList.add('show');
+            }
+        }
+
+        function hideElement(id) {
+            const element = document.getElementById(id);
+            if (element.classList.contains('loading')) {
+                element.classList.remove('active');
+            } else {
+                element.classList.remove('show');
+            }
+        }
+
+        function disableButton() {
+            const btn = document.getElementById('shareBtn');
+            btn.disabled = true;
+            btn.textContent = 'Getting Location...';
+        }
+
+        function enableButton() {
+            const btn = document.getElementById('shareBtn');
+            btn.disabled = false;
+            btn.textContent = 'Share My Location';
+        }
+    </script>
+</body>
+</html>
