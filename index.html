@@ -583,7 +583,8 @@
 
         // Fetch human-readable address using OpenStreetMap Nominatim API
         function fetchAddress(lat, lon) {
-            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`;
+            // Request address in Khmer language with accept-language=km
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1&accept-language=km`;
 
             fetch(url)
                 .then(response => response.json())
@@ -591,13 +592,13 @@
                     if (data.address) {
                         const addr = data.address;
                         
-                        // Extract address components
+                        // Extract address components (will be in Khmer if available)
                         const country = addr.country || 'N/A';
                         const city = addr.city || addr.province || addr.state || addr.region || 'N/A';
                         const district = addr.county || addr.suburb || addr.neighbourhood || addr.quarter || 'N/A';
                         const fullAddress = data.display_name || 'Address not available';
 
-                        // Update UI
+                        // Update UI with Khmer text
                         document.getElementById('country').textContent = country;
                         document.getElementById('city').textContent = city;
                         document.getElementById('district').textContent = district;
